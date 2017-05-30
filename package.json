@@ -1,0 +1,28 @@
+{
+    "name": "asynchronous-interactive",
+    "version": "0.0.1",
+    "description": "Asynchronously load interactive elements in the AMD-interactive format",
+    "main": "index.js",
+    "files": [
+	"dist",
+	"lib"
+    ],
+    "scripts": {
+	"test": "echo \"Error: no test specified\" && exit 1",
+	"build:lib": "<transform ES6 to ES5 and put it to ./lib folder>",
+	"build:umd": "<make a umd module and put it ./dist folder>",
+	"build": "npm run build:lib && npm run build:umd",
+	"postbuild": "<make minify code>"
+	"prepublish": "npm run build"
+    },
+    "repository": {
+	"type": "git",
+	"url": "git+https://github.com/kisonecat/asynchronous-interactive.git"
+    },
+    "author": "Jim Fowler <kisonecat@gmail.com>",
+    "license": "GPL-3.0",
+    "bugs": {
+	"url": "https://github.com/kisonecat/asynchronous-interactive/issues"
+    },
+    "homepage": "https://github.com/kisonecat/asynchronous-interactive#readme"
+}
