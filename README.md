@@ -13,21 +13,23 @@ An "asynchronous interactive" is an interactive widget described via
 JavaScript code stored in an [AMD
 module](https://en.wikipedia.org/wiki/Asynchronous_module_definition).
 This is similar to the [Sqwidget
-project](https://github.com/premasagar/sqwidget) and like [Premasagar
-Rose](http://premasagar.com/)'s
-[sandie](https://github.com/premasagar/sandie), the widget's code is
-loaded inside an iframe, but provided access to a div or canvas
+project](https://github.com/premasagar/sqwidget).  Just like
+[Premasagar Rose](http://premasagar.com/)'s
+[sandie](https://github.com/premasagar/sandie), we load JavaScript
+from inside an iframe.  Then we provide access to a div or canvas
 element.
 
 ## Getting Started
 
-In the `<head>` of your html document, include
+In the `<head>` include
 
 ```html
 <script type="text/javascript" src="//unpkg.com/asynchronous-interactive"></script>
 ```
 
-to load the code from this project.  Once loaded, a `div` with class
+to load the code from this project from an
+[npm](https://www.npmjs.com/package/asynchronous-interactive)
+[cdn](https://unpkg.com/).  Once loaded, a `div` with class
 `asynchronous-interactive` will have its `data-src` attribute
 inspected, and the JavaScript pointed there will be loaded.
 
@@ -36,13 +38,10 @@ example, `sample.js` might consist of
 
 ```javascript
 define(['canvas'],function(canvas) {
-    var width = canvas.width;
-    var height = canvas.height;
-    
     var ctx = canvas.getContext('2d');
-    ctx.fillRect(0, 0, width, height);
-    ctx.clearRect(30, 30, width-60, height-60);
-    ctx.strokeRect(45, 45, width-90, height-90);
+    ctx.fillRect(0, 0, 200, 200);
+    ctx.clearRect(30, 30, 140, 140);
+    ctx.strokeRect(45, 45, 110, 110);
 });
 ```
 
@@ -52,3 +51,43 @@ Then in your html file, load `sample.js` with
 <div class="asynchronous-interactive" data-src="sample.js" style="width: 200pt; height: 200pt;"></div>
 ```
 
+# Instructions
+
+The interactive graphics are stored as an [AMD
+module](https://en.wikipedia.org/wiki/Asynchronous_module_definition), i.e., the JavaScript file looks like
+
+```javascript
+define(['module','names','go','here'], function(module,names,go,here) {
+   // 'module' and such are loaded...
+   // and this function is called with the expected parameters.
+});
+```
+
+For example,
+```javascript
+define(['jquery'], function($) {
+   // and now $ is what you expect it to be.
+});
+```
+
+## Multiple versions
+
+The names of modules are resolved via [the node package
+manager](https://www.npmjs.com/), and can include versions such as
+
+```javascript
+define(['div', 'three@0.85.2'], function(container, THREE) {
+    renderer = new THREE.CanvasRenderer(); 
+    container.appendChild( renderer.domElement );
+
+    // do more with three.js here
+});
+```
+
+## Special module names
+
+There are a few special module names:
+
+* `div` refers to the container DOM element.
+* `canvas` refers to a canvas element (created as a child of the parent div).
+* `db` refers to a local "database" which, depending on the surrounding application, may be persisted for the current user.
