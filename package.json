@@ -1,28 +1,35 @@
 {
-    "name": "asynchronous-interactive",
-    "version": "0.0.1",
-    "description": "Asynchronously load interactive elements in the AMD-interactive format",
-    "main": "index.js",
-    "files": [
-	"dist",
-	"lib"
-    ],
-    "scripts": {
-	"test": "echo \"Error: no test specified\" && exit 1",
-	"build:lib": "<transform ES6 to ES5 and put it to ./lib folder>",
-	"build:umd": "<make a umd module and put it ./dist folder>",
-	"build": "npm run build:lib && npm run build:umd",
-	"postbuild": "<make minify code>"
-	"prepublish": "npm run build"
-    },
-    "repository": {
-	"type": "git",
-	"url": "git+https://github.com/kisonecat/asynchronous-interactive.git"
-    },
-    "author": "Jim Fowler <kisonecat@gmail.com>",
-    "license": "GPL-3.0",
-    "bugs": {
-	"url": "https://github.com/kisonecat/asynchronous-interactive/issues"
-    },
-    "homepage": "https://github.com/kisonecat/asynchronous-interactive#readme"
+  "name": "asynchronous-interactive",
+  "version": "0.0.2",
+  "description": "Asynchronously load interactive elements in the AMD-interactive format",
+  "main": "bin/asynchronous-interactive.min.js",
+  "files": [
+    "bin"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node ./node_modules/webpack/bin/webpack.js src/index.js bin/asynchronous-interactive.js",
+    "postbuild": "node ./node_modules/minify/bin/minify.js bin/asynchronous-interactive.js > bin/asynchronous-interactive.min.js",
+    "prepublish": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kisonecat/asynchronous-interactive.git"
+  },
+  "author": "Jim Fowler <kisonecat@gmail.com>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/kisonecat/asynchronous-interactive/issues"
+  },
+  "homepage": "https://github.com/kisonecat/asynchronous-interactive#readme",
+  "devDependencies": {
+    "minify": "^2.0.14",
+    "webpack": "^2.6.1"
+  },
+  "dependencies": {
+    "async": "^2.4.1",
+    "jquery": "^3.2.1",
+    "jquery-ui-bundle": "^1.12.1",
+    "underscore": "^1.8.3"
+  }
 }
