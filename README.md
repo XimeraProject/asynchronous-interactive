@@ -19,6 +19,10 @@ project](https://github.com/premasagar/sqwidget).  Just like
 from inside an iframe.  Then we provide access to a div or canvas
 element.
 
+## Working demo
+
+Go to https://rawgit.com/kisonecat/asynchronous-interactive/master/examples/ to see a live demo.
+
 ## Getting Started
 
 In the `<head>` include
