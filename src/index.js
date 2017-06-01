@@ -76,27 +76,41 @@ $(function() {
 	// Create an iframe
 	var iframe = document.createElement('iframe');
 	iframe.style.display = 'none';
-	document.body.appendChild(iframe);
 
-	// "define" is defined locally to load dependencies
-	iframe.contentWindow.define = function(dependencies, callback) {
-	    async.mapSeries( dependencies,
-			     function( item, callback ) {
-				 loadDependency(window, iframe.contentWindow, div.get(0), item, callback);
-			     },
-			     function(err, results) {
-				 if (err) {
-				     console.log(err);
-				 } else {
-				     callback.apply( div, results );
-				 }
-			     });
+	var loaded = function() { 
+	    // "define" is defined locally to load dependencies
+	    iframe.contentWindow.define = function(dependencies, callback) {
+		async.mapSeries( dependencies,
+				 function( item, callback ) {
+				     loadDependency(window, iframe.contentWindow, div.get(0), item, callback);
+				 },
+				 function(err, results) {
+				     if (err) {
+					 console.log(err);
+				     } else {
+					 callback.apply( div, results );
+				     }
+				 });
+	    };
+	    
+	    // Execute the interactive code
+	    var iframeDocument = iframe.contentDocument;
+	    if (!iframeDocument && iframe.contentWindow) {
+		iframeDocument = iframe.contentWindow.document;
+	    }
+	    var script = iframeDocument.createElement("script");
+	    
+	    script.type = "text/javascript";
+	    script.src = div.attr('data-src');
+	    script.async = true;
+	    iframeDocument.getElementsByTagName('head')[0].appendChild(script);
 	};
 
-	// Execute the interactive code
-	var script = iframe.contentWindow.document.createElement("script");
-	script.type = "text/javascript";
-	script.src = div.attr('data-src');
-	iframe.contentWindow.document.body.appendChild(script);
+        if(iframe.addEventListener)
+            iframe.addEventListener('load', loaded, true);
+        else if(iframe.attachEvent)
+            iframe.attachEvent('onload',loaded);
+
+	document.body.appendChild(iframe);	
     });
 });
