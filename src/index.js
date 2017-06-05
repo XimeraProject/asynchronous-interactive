@@ -2,8 +2,14 @@ var $ = require('jquery');
 require('jquery-ui-bundle');
 var _ = require('underscore');
 var async = require('async');
+var db = require('./db');
 
 function loadDependency( parent, window, div, item, callback ) {
+    if (item == 'db') {
+	callback(null,db.factory());
+	return;
+    }
+    
     if (item == 'div') {
 	callback(null,div);
 	return;
