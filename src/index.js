@@ -20,18 +20,22 @@ function loadDependency( parent, window, div, item, callback ) {
 
     var binding = undefined;
     
+    var script = window.document.createElement("script");
+    
     // jsxgraph's package.json "main" points to the wrong place in
     // npm.  Even worse, JXG.JSXGraph.initBoard requires an id of a
     // div, but if we load it inside the iframe, then it doesn't see
     // the div.  Consequently, we load JSXGraph into the parent
     // document.
     if (item.match(/^jsxgraph/)) {
-	item = item + "/distrib/jsxgraphcore.js";
+	script.src = "https://unpkg.com/" + item + "/distrib/jsxgraphcore.js";
 	window = parent;
 	binding = "JXG";
+    } else if (item.match(/\.js$/)) {
+	script.src = item;
+    } else {
+	script.src = "https://unpkg.com/" + item;
     }
-    
-    var script = window.document.createElement("script");
     
     var originalKeys = _.keys( window );
     
@@ -52,7 +56,6 @@ function loadDependency( parent, window, div, item, callback ) {
     };
 
     script.type = "text/javascript";
-    script.src = "https://unpkg.com/" + item;
     
     // On modern browsers
     script.onload=onLoad;
