@@ -41,6 +41,9 @@ exports.factory = function() {
 
 	clear: function() {
 	    window.localStorage.clear();
+
+	    if ('reset' in db.handlers)
+		db.handlers['reset'].forEach( function(handler) { handler(); } );
 	}
     };
     
