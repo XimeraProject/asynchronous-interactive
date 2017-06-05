@@ -19,8 +19,8 @@ function loadDependency( parent, window, div, item, callback ) {
     }
 
     var binding = undefined;
-    
     var script = window.document.createElement("script");
+    var waitForDefine = false;
     
     // jsxgraph's package.json "main" points to the wrong place in
     // npm.  Even worse, JXG.JSXGraph.initBoard requires an id of a
@@ -33,12 +33,13 @@ function loadDependency( parent, window, div, item, callback ) {
 	binding = "JXG";
     } else if (item.match(/\.js$/)) {
 	script.src = item;
+	waitForDefine = true;
     } else {
 	script.src = "https://unpkg.com/" + item;
     }
     
     var originalKeys = _.keys( window );
-    
+
     var onLoad = function() {
 	if (binding) {
 	    callback(null, window[binding]);
@@ -56,20 +57,32 @@ function loadDependency( parent, window, div, item, callback ) {
     };
 
     script.type = "text/javascript";
-    
-    // On modern browsers
-    script.onload=onLoad;
-    // On IE
-    script.onreadystatechange = function() {
-        if (this.readyState == 'complete') {
-            onLoad();
-         }
-    };
 
-    window.define = function() {
-	console.log("calld define");
-    };
-	
+    if (waitForDefine) {
+	window.define = function(dependencies, code) {
+	    async.mapSeries( dependencies,
+			     function( item, callback ) {
+				 loadDependency(parent, window, div, item, callback);
+			     },
+			     function(err, results) {
+				 if (err) {
+				     callback( err, null );
+				 } else {
+				     callback( null, code.apply( div, results ) );
+				 }
+			     });
+	};
+    } else {
+	// On modern browsers
+	script.onload=onLoad;
+	// On IE
+	script.onreadystatechange = function() {
+            if (this.readyState == 'complete') {
+		onLoad();
+            }
+	};
+    }
+    
     // IE<9 doesn't understand document.head
     var head = window.document.getElementsByTagName("head")[0];
     head.appendChild(script);
