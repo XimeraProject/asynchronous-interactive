@@ -65,7 +65,11 @@ function loadDependency( parent, window, div, item, callback ) {
             onLoad();
          }
     };
-    
+
+    window.define = function() {
+	console.log("calld define");
+    };
+	
     // IE<9 doesn't understand document.head
     var head = window.document.getElementsByTagName("head")[0];
     head.appendChild(script);
