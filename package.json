@@ -1,6 +1,6 @@
 {
   "name": "asynchronous-interactive",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Asynchronously load interactive elements in the AMD-interactive format",
   "main": "bin/asynchronous-interactive.min.js",
   "files": [

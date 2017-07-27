@@ -10,20 +10,19 @@ exports.factory = function(id) {
 	},
 	
 	set: function(target, name, value) {
-	    if (target[name])
-		target[name] = value;
-	    else {
-		var data = JSON.parse(window.localStorage.getItem(window.location.pathname + '#' + id));
+	    target[name] = value;
+
+	    var data = JSON.parse(window.localStorage.getItem(window.location.pathname + '#' + id));
 		
-		if (!data)
-		    data = {};
-		data[name] = value;
+	    if (!data)
+		data = {};
+	    data[name] = value;
 		
-		window.localStorage.setItem(window.location.pathname + '/' + id, JSON.stringify(data));
+	    window.localStorage.setItem(window.location.pathname + '/' + id, JSON.stringify(data));
 		
-		if ('change' in target.handlers)
-		    target.handlers['change'].forEach( function(handler) { handler(); } );
-	    }
+	    if ('change' in target.handlers)
+		target.handlers['change'].forEach( function(handler) { handler(); } );
+
 	    return true;
 	}
     };
@@ -48,7 +47,7 @@ exports.factory = function(id) {
 		    handler();
 		}
 	    }
-    },
+	},
 
 	clear: function() {
 	    window.localStorage.clear();
