@@ -78,6 +78,8 @@ function loadDependency( parent, window, div, item, callback ) {
 				 }
 			     });
 	};
+
+	window.define.amd = true;
     } else {
 	// On modern browsers
 	script.onload=onLoad;
