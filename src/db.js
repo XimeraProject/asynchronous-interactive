@@ -5,8 +5,14 @@ exports.factory = function(id) {
 	get: function(target, name) {
 	    if (target[name])
 		return target[name];
-	    else
-		return JSON.parse(window.localStorage.getItem(window.location.pathname + '#' + id))[name];
+	    else {
+		var data = JSON.parse(window.localStorage.getItem(window.location.pathname + '#' + id));
+
+		if (name in data)
+		    return data[name];
+		else
+		    return undefined;
+	    }
 	},
 	
 	set: function(target, name, value) {
