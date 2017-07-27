@@ -6,7 +6,7 @@ var db = require('./db');
 
 function loadDependency( parent, window, div, item, callback ) {
     if (item == 'db') {
-	callback(null,db.factory());
+	callback(null,db.factory($(div).attr('id')));
 	return;
     }
     

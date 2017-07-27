@@ -1,19 +1,22 @@
 var exports = module.exports = {};
 
-exports.factory = function() {
+exports.factory = function(id) {
     var handler = {
 	get: function(target, name) {
 	    if (target[name])
 		return target[name];
 	    else
-		return JSON.parse(window.localStorage.getItem(name));
+		return JSON.parse(window.localStorage.getItem(window.location.pathname + '#' + id))[name];
 	},
 	
 	set: function(target, name, value) {
 	    if (target[name])
 		target[name] = value;
 	    else {
-		window.localStorage.setItem(name, JSON.stringify(value));
+		var data = JSON.parse(window.localStorage.getItem(window.location.pathname + '#' + id));
+		data[name] = value;
+		window.localStorage.setItem(window.location.pathname + '/' + id, JSON.stringify(data));
+		
 		if ('change' in target.handlers)
 		    target.handlers['change'].forEach( function(handler) { handler(); } );
 	    }
@@ -35,9 +38,13 @@ exports.factory = function() {
 		handler();
 
 	    // Only execute an onReset handlers if the dataase is empty
-	    if ((event == 'reset') && (Object.keys(window.localStorage).length == 0))
-		handler();
-	},
+	    if (event == 'reset') {
+		var data = window.localStorage.getItem(window.location.pathname + '#' + id);
+		if ((!data) || (Object.keys(JSON.parse(data)).length == 0)) {
+		    handler();
+		}
+	    }
+    },
 
 	clear: function() {
 	    window.localStorage.clear();
