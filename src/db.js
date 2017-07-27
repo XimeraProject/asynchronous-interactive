@@ -3,12 +3,11 @@ var exports = module.exports = {};
 exports.factory = function(id) {
     var handler = {
 	get: function(target, name) {
-	    if (target[name])
+	    if (target[name]) {
 		return target[name];
-	    else {
+	    } else {
 		var data = JSON.parse(window.localStorage.getItem(window.location.pathname + '#' + id));
-
-		if (name in data)
+		if ((data) && (name in data))
 		    return data[name];
 		else
 		    return undefined;
@@ -24,8 +23,8 @@ exports.factory = function(id) {
 		data = {};
 	    data[name] = value;
 		
-	    window.localStorage.setItem(window.location.pathname + '/' + id, JSON.stringify(data));
-		
+	    window.localStorage.setItem(window.location.pathname + '#' + id, JSON.stringify(data));
+
 	    if ('change' in target.handlers)
 		target.handlers['change'].forEach( function(handler) { handler(); } );
 
@@ -56,7 +55,7 @@ exports.factory = function(id) {
 	},
 
 	clear: function() {
-	    window.localStorage.clear();
+	    window.localStorage.setItem(window.location.pathname + '#' + id, "{}");
 
 	    if ('reset' in db.handlers)
 		db.handlers['reset'].forEach( function(handler) { handler(); } );
