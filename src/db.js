@@ -14,7 +14,11 @@ exports.factory = function(id) {
 		target[name] = value;
 	    else {
 		var data = JSON.parse(window.localStorage.getItem(window.location.pathname + '#' + id));
+		
+		if (!data)
+		    data = {};
 		data[name] = value;
+		
 		window.localStorage.setItem(window.location.pathname + '/' + id, JSON.stringify(data));
 		
 		if ('change' in target.handlers)
