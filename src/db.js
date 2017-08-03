@@ -1,4 +1,5 @@
 var exports = module.exports = {};
+var _ = require('underscore');
 
 exports.factory = function(id) {
     var handler = {
@@ -25,8 +26,9 @@ exports.factory = function(id) {
 		
 	    window.localStorage.setItem(window.location.pathname + '#' + id, JSON.stringify(data));
 
+	    // BADBAD: only call this ONCE after this cycle through the event loop
 	    if ('change' in target.handlers)
-		target.handlers['change'].forEach( function(handler) { handler(); } );
+		_.defer( function() { target.handlers['change'].forEach( function(handler) { handler(); } ); } );
 
 	    return true;
 	}
