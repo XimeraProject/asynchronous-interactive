@@ -1,6 +1,22 @@
 var exports = module.exports = {};
 var _ = require('underscore');
 
+// This is a polyfill attaching to global scope
+require('setimmediate');
+
+var changesToNotify = [];
+var willNotify = false;
+function notifyChanges() {
+    changesToNotify.forEach( function(target) {
+	target.stopPropagating = true;
+	target.handlers['change'].forEach( function(handler) { handler(); } );
+	delete target.stopPropagating;
+    } );
+    
+    changesToNotify = [];
+    willNotify = false;
+}
+
 exports.factory = function(id) {
     var handler = {
 	get: function(target, name) {
@@ -26,9 +42,17 @@ exports.factory = function(id) {
 		
 	    window.localStorage.setItem(window.location.pathname + '#' + id, JSON.stringify(data));
 
-	    // BADBAD: only call this ONCE after this cycle through the event loop
-	    if ('change' in target.handlers)
-		_.defer( function() { target.handlers['change'].forEach( function(handler) { handler(); } ); } );
+	    // Do not call this from within the change handler
+	    if (('change' in target.handlers) && (!(target.stopPropagating))) {
+		// Only call this ONCE after this cycle through the event loop		
+		if (changesToNotify.indexOf( target ) < 0) {
+		    changesToNotify.push( target );
+		    if (!willNotify) {
+			willNotify = true;
+			setImmediate( notifyChanges );
+		    }
+		}
+	    }
 
 	    return true;
 	}
@@ -38,14 +62,16 @@ exports.factory = function(id) {
 	handlers: {},
 	
 	on: function(event, handler) {
+
 	    if (db.handlers[event])
 		db.handlers[event].push(handler);
 	    else
 		db.handlers[event] = [handler];
 
 	    // Always execute onChange handlers as soon as they are registered
-	    if (event == 'change') 
+	    if (event == 'change') {
 		handler();
+	    }
 
 	    // Only execute an onReset handlers if the dataase is empty
 	    if (event == 'reset') {

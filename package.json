@@ -1,6 +1,6 @@
 {
   "name": "asynchronous-interactive",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Asynchronously load interactive elements in the AMD-interactive format",
   "main": "bin/asynchronous-interactive.min.js",
   "files": [
@@ -30,6 +30,7 @@
     "async": "^2.4.1",
     "jquery": "^3.2.1",
     "jquery-ui-bundle": "^1.12.1",
+    "setimmediate": "^1.0.5",
     "underscore": "^1.8.3"
   }
 }
