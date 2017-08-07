@@ -39,7 +39,7 @@ define(['div', 'jquery', 'three@0.85.2'], function(container, $, THREE) {
     
     // Sphere parameters: radius, segments along width, segments along height
     var sphereGeometry = new THREE.SphereGeometry( 50, 32, 16 ); 
-    var sphereMaterial = new THREE.MeshLambertMaterial( {color: 0x8888ff} ); 
+    var sphereMaterial = new THREE.MeshBasicMaterial( {color: 0x8888ff} ); 
     var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.position.set(100, 50, -50);
     scene.add(sphere);

@@ -6,8 +6,20 @@ define(['div', 'jquery', 'db'], function(div, $, db) {
     $(div).on('click', function() {
 	db.counter = db.counter + 1;
     });
+
+    db.other.on('change', function() {
+	if (db.other.clicked) {
+	    $(div).html('You have clicked this ' + db.counter.toString() + ' time(s).  YOU ALSO CLICKED THE SQUARE.');
+	} else {
+	    $(div).html('You have clicked this ' + db.counter.toString() + ' time(s).  You have not clicked the square.');	    
+	}	
+    });
     
     db.on('change', function() {
-	$(div).html('You have clicked this ' + db.counter.toString() + ' time(s).');
-    });
+	if (db.other.clicked) {
+	    $(div).html('You have clicked this ' + db.counter.toString() + ' time(s).  YOU ALSO CLICKED THE SQUARE.');
+	} else {
+	    $(div).html('You have clicked this ' + db.counter.toString() + ' time(s).  You have not clicked the square.');	    
+	}
+    });    
 });

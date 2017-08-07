@@ -17,12 +17,29 @@ function notifyChanges() {
     willNotify = false;
 }
 
+var databases = {};
+
 exports.factory = function(id) {
+    if (databases[id])
+	return databases[id];
+    
     var handler = {
 	get: function(target, name) {
 	    if (target[name]) {
 		return target[name];
 	    } else {
+		// Check to see if this is a reference to another database
+		var element = document.getElementById(id);
+		if ((element) && (element.getAttribute('data-' + name))) {
+		    var other = element.getAttribute('data-' + name);
+		    if (other.substr(0,1) == '#') {
+			if (databases[other.substr(1)])
+			    return databases[other.substr(1)];
+			else
+			    return exports.factory(other.substr(1));
+		    }
+		}
+		
 		var data = JSON.parse(window.localStorage.getItem(window.location.pathname + '#' + id));
 		if ((data) && (name in data))
 		    return data[name];
@@ -91,6 +108,7 @@ exports.factory = function(id) {
     };
     
     var proxy = new Proxy(db, handler);
+    databases[id] = proxy;
     
     return proxy;
 };
