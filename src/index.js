@@ -4,141 +4,146 @@ var _ = require('underscore');
 var async = require('async');
 var db = require('./db');
 
-function loadDependency( parent, window, div, item, callback ) {
-    if (item == 'db') {
-	callback(null,db.factory($(div).attr('id')));
+var MODULES = {};
+
+// By using a named "eval" most browsers will execute in the global scope.
+// http://www.davidflanagan.com/2010/12/global-eval-in.html
+var globalEval = eval;
+
+function specials(name, context) {
+    if (name == 'canvas') {
+	var div = context.div;
+	
+	if (!(context.canvas)) {
+	    context.canvas = window.document.createElement('canvas');
+	    context.canvas.width = $(div).width();
+	    context.canvas.height = $(div).height();
+	    div.appendChild(context.canvas);
+	}
+	
+	return context.canvas;
+    }	
+	
+    if (name == 'div') {
+	return context.div;
+    }
+
+    if (name == 'db') {
+	return context.db;
+    }
+    
+    if (name == 'jquery') {
+	return $;
+    }
+
+    return undefined;
+}
+
+function asynchronousRequire(moduleName, topLevel, context, callback) {
+    if (specials(moduleName, context)) {
+	callback( null, specials(moduleName, context) );
 	return;
     }
     
-    if (item == 'div') {
-	callback(null,div);
-	return;
+    if (MODULES[moduleName]) {
+	callback( null, MODULES[moduleName].exports );
+	return;	
     }
 
-    if (item == 'canvas') {
-	var canvas = document.createElement('canvas');
-	canvas.width = div.scrollWidth;
-	canvas.height = div.scrollHeight;
-	div.appendChild(canvas);	
-	callback(null,canvas);
-	return;
+    var location = moduleName;
+
+    if (location.match(/\.js$/)) {
+	location = location;
+    } else {
+	if (location.match(/^jsxgraph/))
+	    location = "https://unpkg.com/" + location + "/distrib/jsxgraphcore.js";
+	else
+	    location = "https://unpkg.com/" + location;
     }
+
+    var request = new XMLHttpRequest();
 
     var binding = undefined;
-    var script = window.document.createElement("script");
-    var waitForDefine = false;
-    
-    // jsxgraph's package.json "main" points to the wrong place in
-    // npm.  Even worse, JXG.JSXGraph.initBoard requires an id of a
-    // div, but if we load it inside the iframe, then it doesn't see
-    // the div.  Consequently, we load JSXGraph into the parent
-    // document.
-    if (item.match(/^jsxgraph/)) {
-	script.src = "https://unpkg.com/" + item + "/distrib/jsxgraphcore.js";
-	window = parent;
+    if (moduleName.match(/^jsxgraph/)) {    
 	binding = "JXG";
-    } else if (item.match(/\.js$/)) {
-	script.src = item;
-	waitForDefine = true;
-    } else {
-	script.src = "https://unpkg.com/" + item;
     }
     
-    var originalKeys = _.keys( window );
+    request.onload = function () {
+        if (request.status == 200) {
+	    var deps = {};
+            request.response.replace(/(?:^|[^\w\$_.])require\s*\(\s*["']([^"']*)["']\s*\)/g, function (_, id) {
+                deps[id] = true;
+            });
 
-    var onLoad = function() {
-	if (binding) {
-	    callback(null, window[binding]);
-	} else {
-	    var changes = _.difference( _.keys(window), originalKeys );
-
-	    var global = window[changes.pop()];
-	
-	    _.each( changes, function(change) {
-		_.extend( global, window[change] );
-	    });
+	    if (binding) deps = {};
 	    
-	    callback(null, global);
+	    async.mapSeries( Object.keys(deps),
+		       function(dependency, callback) {
+			   asynchronousRequire( dependency, false, context, callback );	
+		       },
+		       function(err, results) {
+			   if (err) {
+			       callback( err, {} );			       
+			   } else {
+			       var module = { exports: {} };
+			   
+			       if (!topLevel)
+				   MODULES[moduleName] = module;
+
+			       // Some modules don't like our module loader
+			       if (binding) {
+				   globalEval(request.response);
+				   module = window[binding];
+				   callback( null, module );
+			       } else {
+				   (globalEval("(function(require,define,exports,module){" + request.response + "\n})//# sourceURL=" + location))(
+				       function require (id) {
+					   if (specials(id, context)) {
+					       return specials(id, context);
+					   } else
+					       return MODULES[id].exports;
+				       }, // require
+				       function define( dependencies, code ) {
+					   async.mapSeries( dependencies,
+							    function( item, callback ) {
+								asynchronousRequire( item, false, context, callback );
+							    },
+							    function(err, results) {
+								module.exports = code.apply( context.div,
+											     results );
+							    });
+				       },
+				       module.exports, // exports
+				       module
+				   );
+			       
+				   callback( null, module.exports );
+			       }
+			   }
+		       });
 	}
     };
-
-    script.type = "text/javascript";
-
-    if (waitForDefine) {
-	window.define = function(dependencies, code) {
-	    async.mapSeries( dependencies,
-			     function( item, callback ) {
-				 loadDependency(parent, window, div, item, callback);
-			     },
-			     function(err, results) {
-				 if (err) {
-				     callback( err, null );
-				 } else {
-				     callback( null, code.apply( div, results ) );
-				 }
-			     });
-	};
-
-	window.define.amd = true;
-    } else {
-	// On modern browsers
-	script.onload=onLoad;
-	// On IE
-	script.onreadystatechange = function() {
-            if (this.readyState == 'complete') {
-		onLoad();
-            }
-	};
-    }
-    
-    // IE<9 doesn't understand document.head
-    var head = window.document.getElementsByTagName("head")[0];
-    head.appendChild(script);
+	
+    request.open("GET", location, true);
+    request.send();
 }
 
 $(function() {
     $('.asynchronous-interactive').each( function() {
 	var div = $(this);
 	div.uniqueId();
+	var id = $(this).attr('id');
+	var src = div.attr('data-src');
+
+	var context = { div: div.get(0),
+		        db: db.factory(id)
+		      };
 	
-	// Create an iframe
-	var iframe = document.createElement('iframe');
-	iframe.style.display = 'none';
-
-	var loaded = function() { 
-	    // "define" is defined locally to load dependencies
-	    iframe.contentWindow.define = function(dependencies, callback) {
-		async.mapSeries( dependencies,
-				 function( item, callback ) {
-				     loadDependency(window, iframe.contentWindow, div.get(0), item, callback);
-				 },
-				 function(err, results) {
-				     if (err) {
-					 console.log(err);
-				     } else {
-					 callback.apply( div, results );
-				     }
-				 });
-	    };
-	    
-	    // Execute the interactive code
-	    var iframeDocument = iframe.contentDocument;
-	    if (!iframeDocument && iframe.contentWindow) {
-		iframeDocument = iframe.contentWindow.document;
-	    }
-	    var script = iframeDocument.createElement("script");
-	    
-	    script.type = "text/javascript";
-	    script.src = div.attr('data-src');
-	    script.async = true;
-	    iframeDocument.getElementsByTagName('head')[0].appendChild(script);
-	};
-
-        if(iframe.addEventListener)
-            iframe.addEventListener('load', loaded, true);
-        else if(iframe.attachEvent)
-            iframe.attachEvent('onload',loaded);
-
-	document.body.appendChild(iframe);	
+	asynchronousRequire( "./" + src,
+			     true, // this is a top-level require
+			     context,
+			     function(err) {
+				 console.log(err);
+			     });
     });
 });
