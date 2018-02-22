@@ -37,6 +37,8 @@ exports.factory = function(id) {
 			    return databases[other.substr(1)];
 			else
 			    return exports.factory(other.substr(1));
+		    } else {
+			return eval(other);
 		    }
 		}
 		
